@@ -15,32 +15,34 @@ counter = 1;
 pConvex = 10000;
 dif =sum(abs(p_prevVec - pConvex'));
 while dif >= delta
-    for j = 1:J 
+    for j = 1:J  % for each person, p contains info about each facial ROI
         
-        Sj = S(:,((j-1)*N+1):(j*N));  % T x N   %S(:,1:N);
+        Sj = S(:,((j-1)*N+1):(j*N));  % T x N   %S(:,1:N); % each person's pulse
         if length(find(isnan(Sj))) > 0 
             continue
         else
-        T = size(Sj,1);
-        P = diag(p_prevVec.^2);  % size T x T ( or N X N)
+            T = size(Sj,1); % time in frames
+            P = diag(p_prevVec.^2);  % size T x T ( or N X N)
 
-        Sigma = Sj*P*Sj'; % N x N b/c (NxT) (TxT) (TxN)
-        [U, ~, ~] = svd(Sigma);
-        phi = U(:,1:k);    % N x 3
+            Sigma = Sj*P*Sj'; % N x N b/c (NxT) (TxT) (TxN)
+            [U, ~, ~] = svd(Sigma);
+            phi = U(:,1:k);    % N x 3
 
-        E_hat = Sj' * phi * phi';    % I x N
-        % E_hat = [e_hati....e_hatN];
+            E_hat = Sj' * phi * phi';    % I x N
+            % E_hat = [e_hati....e_hatN];
 
-        %update e_next
-        e_next = (mean(E_hat,1)');   % length I  %sum(e_hati)/N
+            %update e_next
+            e_next = (mean(E_hat,1)');   % eq 9, length I  %sum(e_hati)/N
 
-        e_nextJ = [e_nextJ e_next];  % concatenate e_next for all people J?
+            e_nextJ = [e_nextJ e_next];  % concatenate e_next for all people J?
+        end
     end
-    end
 
+    % to update p, first must compute goodness g and solve eq 8 
+    
  for j = 1:J
     g = getGoodness(Sj, e_next);   % g should be a vector   1 x N
-    gVecj = [gVecj; g];      % matrix J x N
+    gVecj = [gVecj; g];      % matrix J x N, compute this for each person using the initial e
  end
 
     % update p_next
@@ -62,7 +64,7 @@ gVecjAve = sum(gVecj,1);    % sum or average?
     cvx_end
 % end 
     dif = sum(abs(p_prevVec - pConvex'));
-    p_prevVec = pConvex';
+    p_prevVec = pConvex'; % update p
     counter = counter +1;
 end   
 p = p_prevVec;

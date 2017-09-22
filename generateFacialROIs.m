@@ -131,6 +131,13 @@ facialRegions{14} = region14;
 facialRegions{15} = region15;
 facialRegions{16} = region16;
 
+%% visualize
+% figure, imshow(firstFrame), hold on, 
+% for i = 1:16
+%     pnts_plot = facialRegions{i};
+%     plot(pnts_plot(:,1), pnts_plot(:,2))
+%     pause(1)
+% end
 
 end
    

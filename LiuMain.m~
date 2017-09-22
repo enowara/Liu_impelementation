@@ -43,7 +43,6 @@ folderMain = '/media/ewa/SH/DatasetsAntiSpoof/3dmadDirectories/';
             numFrame = videoLength*videoRate;
             width = v.Width;
             height = v.Height; 
-            Fps = v.FrameRate;
 
             frames = read(v);
 
@@ -102,15 +101,14 @@ for n = 1:N
     chG = 2;
     chB = 3;
     nn = 10;
-    % CHROM PPG extraction
     [PPGrawR] = getPPGperChannel(chR, vg, gridROI, nn);
     [PPGrawG] = getPPGperChannel(chG, vg, gridROI, nn);
     [PPGrawB] = getPPGperChannel(chB, vg, gridROI, nn);
 
     % Chrom
     % raw PPG for a grid region 
-    pulseXYii = getPulseXY(PPGrawR, PPGrawG, PPGrawB, Fps); % per grid ROI
-    pulseXYi = mean(pulseXYii,2);  % average spatially for each small facial ROI
+    pulseXYii = getPulseXY(PPGrawR, PPGrawG, PPGrawB); % per grid ROI
+    pulseXYi = mean(pulseXYii,2);
     pulseXY=  [pulseXY pulseXYi]; % per person
 end
 
@@ -134,7 +132,7 @@ end
 % 
 % Slive = [Str Sts Sdev];
 
-if f == 1 || f ==2 % live videos
+if f == 1|| f ==2 % live videos
 Slive = S;
 delta = 10^-3; % convergence threshold
 % alpha = 0.6; %(% of variance preserved)
@@ -155,8 +153,8 @@ end
 
 saveLiuFolder = 'LiuMasks/';
 mkdir(saveLiuFolder)
-liveFolders = 1:2;
-fakeFolders = 3;
+liveFolders = 1;
+fakeFolders = 2:3;
 N = 16;
 % attack = 'photo';
  [scores_SVM_postcell, scores_SVMcell, Ytsscell, Ytrscell, testPeople, labelsSVMcell, ...

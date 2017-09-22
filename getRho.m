@@ -3,7 +3,7 @@ function rho = getRho(Sj, N)
 rho = [];
 % for n = 1:N-1
 for i = 1:N;
-    for j = 1:N; % figure out how to select different regions
+    for j = i:N; % ignore repeating similarity pairs
     % generate C(N,2) combinations
     s_i = Sj(:,i);
     s_j = Sj(:,j);

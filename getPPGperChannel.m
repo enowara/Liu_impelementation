@@ -1,5 +1,12 @@
 function [PPGraw] = getPPGperChannel(ch, filteredImages, gridPoints, n)
-% get a raw estimate of the PPG in R, , B channels
+% get a raw estimate of the PPG in R, G, B channels by using spatial
+% averaging for each grid inside each small ROI
+
+%% debugging
+% ch = chR;
+% filteredImages = vg;
+% gridPoints = gridROI;
+% n = nn;
 
 filteredImages = filteredImages(:,:,ch,:);     % choose channel ch - rgb
 filteredImages = permute(filteredImages,[1,2,4,3]);

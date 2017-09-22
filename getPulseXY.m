@@ -1,4 +1,7 @@
-function PulseXY = pulseXY(PPGr, PPGg, PPGb)
+function PulseXY = pulseXY(PPGr, PPGg, PPGb, Fps)
+% Computes a motion robust pulse signal based on chrominance-based method from
+%     Gerard's 2013 paper
+
 % debugging
 % PPGr = PPGrawR;
 % PPGg = PPGrawG;
@@ -6,16 +9,13 @@ function PulseXY = pulseXY(PPGr, PPGg, PPGb)
 
 L = size(PPGr,1);
 
-% Computes a motion robust pulse signal based on chrominance-based method from
-%     Gerard's 2013 paper
-
 % PPG_red: non-filtered raw red channel recordings
 for c = 1:size(PPGr,2)
 
 %     Rn(:,c) = PPGr(:,c)./mean(PPGr,2);   % mean over a window
 %     Gn(:,c) = PPGg(:,c)./mean(PPGg,2);
 %     Bn(:,c) = PPGb(:,c)./mean(PPGb,2);
-for tt = 1:L/75
+for tt = 1:L/(2.5*Fps) % take 2.5 seconds in frames
     meanShortR = mean(PPGr(((tt-1)*75+1) : tt*75, 2 )); 
     Rn(((tt-1)*75+1 : tt*75),c) = PPGr(((tt-1)*75+1 : tt*75),c)./meanShortR;
     meanShortG = mean(PPGg(((tt-1)*75+1) : tt*75, 2 )); 
@@ -29,7 +29,7 @@ end
 X_s = 3*Rn -2*Gn;
 Y_s = 1.5*Rn +Gn - 1.5*Bn;
 
-% filter the signals
+% bandpass filter the signals
 load('../highpass_05_30.mat')
 load('../lowpass_5_30.mat')
 for c = 1:size(PPGr,2)
