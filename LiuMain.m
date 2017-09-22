@@ -123,8 +123,18 @@ end
     catch 
         continue
     end
-end
+   end % end m
+save(['Masks-LiuData-' num2str(f) '.mat'], 'S', 'Mlist')
+ end % end f
+   % iterate through videos, each time leaving out different ones for
+   % validation 
+   numLeave = 1; % number of people to leave out at a time. 
+%    TODO: Implement the same splitting scheme as in my LOOV_SVM code to
+%    leave out all videos of the same person, instead of just one video at
+%    a time but we can try one video at a time too
+   for idx_leave = 1:floor(length(fileNameList)/numLeave)% d
 %% get e and p iteratively
+% LOAD S matrices
 % load('Test-LiuData-1.mat')
 % Sts = S;
 % load('Train-LiuData-1.mat')
@@ -139,22 +149,28 @@ if f == 1 || f ==2 % live videos
     delta = 10^-3; % convergence threshold
     % alpha = 0.6; %(% of variance preserved)
     % r = 3; % bpm error toleration
-    J = size(Slive,2); %1;% size(Slive,2)/3;
+%     J = size(Slive,2); %1;% size(Slive,2)/3;
     
     % implement the LOOV strategy. Loop over all people in the dataset
     % except one when training? 
-    
+%     TODO: fix this part to determine indices defined as m list to leave out
+    j_leave = m;% videos to leave out for testing, if live, 
+                                          % those will not be considered
+                                          % for learning p and q
+    Jlist = setdif([1:size(Slive,2)], j_leave); % keep all videos for training 
+                                                % and learning p and q
+                                                % except j_leave ones
     k = 3; % keep top 3 eigenvectors, convert to 90 % variance instead
     alpha = 0.9; % in percent of variance
     N = 16;
     warning off
-    [pVec] =  iterate_p_e(Slive, delta, k, J, N, alpha); % only computed for live 
+    [pVec] =  iterate_p_e(Slive, delta, k, Jlist, N, alpha); % only computed for live 
     q = get_q(pVec,N); % only computed for live 
     % Q =diag(q(:));   % Q = R'*R;
     % R = sqrtm(Q);
-    save(['Masks-LiuData-' num2str(f) '.mat'], 'S', 'Mlist', 'pVec', 'q')
-else
-    save(['Masks-LiuData-' num2str(f) '.mat'], 'S', 'Mlist', 'pVec', 'q')
+    save(['Masks-LiuData-' num2str(f) '.mat'], 'pVec', 'q')
+% else
+%     save(['Masks-LiuData-' num2str(f) '.mat'], 'S', 'Mlist')
 end
 
 
@@ -169,5 +185,6 @@ fakeFolders = 3;
 N = 16;
 % attack = 'photo';
  [scores_SVM_postcell, scores_SVMcell, Ytsscell, Ytrscell, testPeople, labelsSVMcell, ...
-       orderTscell]  = SVM_LiuTogether(saveLiuFolder, N, q, liveFolders, fakeFolders);
+       orderTscell]  = SVM_LiuTogether(saveLiuFolder, N, q, liveFolders, fakeFolders, Jlist, j_leave);
    
+ end
