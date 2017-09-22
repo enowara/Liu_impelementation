@@ -1,4 +1,4 @@
-function p = iterate_p_e(S, delta, k, J, N)
+function p = iterate_p_e(S, delta, k, J, N, alpha)
 % k = 3;
 % delta - convergence threshold
 % S = t X N*J
@@ -25,9 +25,16 @@ while dif >= delta
             P = diag(p_prevVec.^2);  % size T x T ( or N X N)
 
             Sigma = Sj*P*Sj'; % N x N b/c (NxT) (TxT) (TxN)
-            [U, ~, ~] = svd(Sigma);
-            phi = U(:,1:k);    % N x 3
-
+            [U, S_lambda, ~] = svd(Sigma);
+            
+            all_variance = sum(S_lambda(:));
+            variance_90 = 0.9*all_variance;
+            
+            % keep the number of eigenvectors contributing to 90% of variance
+            
+            k_90 = find_perc_eigen(S_lambda, perc_var);
+%             phi = U(:,1:k);    % N x 3
+            phi = U(:,1:k_90);
             E_hat = Sj' * phi * phi';    % I x N
             % E_hat = [e_hati....e_hatN];
 

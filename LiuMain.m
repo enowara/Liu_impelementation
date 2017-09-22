@@ -135,20 +135,29 @@ end
 % Slive = [Str Sts Sdev];
 
 if f == 1 || f ==2 % live videos
-Slive = S;
-delta = 10^-3; % convergence threshold
-% alpha = 0.6; %(% of variance preserved)
-% r = 3; % bpm error toleration
-J = 1;% size(Slive,2)/3;
-k = 3;
-N = 16;
-warning off
-[pVec] =  iterate_p_e(Slive, delta, k, J, N);
-q = get_q(pVec,N);
-% Q =diag(q(:));   % Q = R'*R;
-% R = sqrtm(Q);
+    Slive = S;
+    delta = 10^-3; % convergence threshold
+    % alpha = 0.6; %(% of variance preserved)
+    % r = 3; % bpm error toleration
+    J = size(Slive,2); %1;% size(Slive,2)/3;
+    
+    % implement the LOOV strategy. Loop over all people in the dataset
+    % except one when training? 
+    
+    k = 3; % keep top 3 eigenvectors, convert to 90 % variance instead
+    alpha = 0.9; % in percent of variance
+    N = 16;
+    warning off
+    [pVec] =  iterate_p_e(Slive, delta, k, J, N, alpha); % only computed for live 
+    q = get_q(pVec,N); % only computed for live 
+    % Q =diag(q(:));   % Q = R'*R;
+    % R = sqrtm(Q);
+    save(['Masks-LiuData-' num2str(f) '.mat'], 'S', 'Mlist', 'pVec', 'q')
+else
+    save(['Masks-LiuData-' num2str(f) '.mat'], 'S', 'Mlist', 'pVec', 'q')
 end
-save(['Masks-LiuData-' num2str(f) '.mat'], 'S', 'Mlist', 'pVec', 'q')
+
+
 
 end
 %% SVM
