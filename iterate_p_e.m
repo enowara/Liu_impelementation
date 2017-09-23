@@ -1,4 +1,4 @@
-function p = iterate_p_e(S, delta, k, J, N, alpha)
+function p = iterate_p_e(S, delta, N, perc_var)
 % k = 3;
 % delta - convergence threshold
 % S = t X N*J
@@ -15,7 +15,7 @@ counter = 1;
 pConvex = 10000;
 dif =sum(abs(p_prevVec - pConvex'));
 while dif >= delta
-    for j = 1:J  % for each person, p contains info about each facial ROI
+    for j = 1:(size(S,2)/N)  % for each person, p contains info about each facial ROI
         
         Sj = S(:,((j-1)*N+1):(j*N));  % T x N   %S(:,1:N); % each person's pulse
         if length(find(isnan(Sj))) > 0 
@@ -47,7 +47,7 @@ while dif >= delta
 
     % to update p, first must compute goodness g and solve eq 8 
     
- for j = 1:J
+ for j = 1:size(S,2)
     g = getGoodness(Sj, e_next);   % g should be a vector   1 x N
     gVecj = [gVecj; g];      % matrix J x N, compute this for each person using the initial e
  end

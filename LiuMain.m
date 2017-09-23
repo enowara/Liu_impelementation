@@ -128,54 +128,97 @@ save(['Masks-LiuData-' num2str(f) '.mat'], 'S', 'Mlist')
  end % end f
    % iterate through videos, each time leaving out different ones for
    % validation 
-   numLeave = 1; % number of people to leave out at a time. 
+
 %    TODO: Implement the same splitting scheme as in my LOOV_SVM code to
 %    leave out all videos of the same person, instead of just one video at
 %    a time but we can try one video at a time too
-   for idx_leave = 1:floor(length(fileNameList)/numLeave)% d
-%% get e and p iteratively
-% LOAD S matrices
-% load('Test-LiuData-1.mat')
-% Sts = S;
-% load('Train-LiuData-1.mat')
-% Str = S;
-% load('Devel-LiuData-1.mat')
-% Sdev = S;
-% 
-% Slive = [Str Sts Sdev];
 
-if f == 1 || f ==2 % live videos
-    Slive = S;
-    delta = 10^-3; % convergence threshold
-    % alpha = 0.6; %(% of variance preserved)
-    % r = 3; % bpm error toleration
-%     J = size(Slive,2); %1;% size(Slive,2)/3;
-    
+%% split for LOOV 
     % implement the LOOV strategy. Loop over all people in the dataset
     % except one when training? 
-%     TODO: fix this part to determine indices defined as m list to leave out
-    j_leave = m;% videos to leave out for testing, if live, 
+startTestPerson1 = [1:5:85];
+endTestPerson1 = [1:5:85] + 4;
+
+startTestPerson2 = [];
+startTestPerson3 = [];
+endTestPerson2 = [];
+endTestPerson3 = [];
+    
+allPeople = startTestPerson1(1):endTestPerson1(end); 
+%     allPeople = startTestPerson1(1):endTestPerson3(end);
+%     pEnd = 15;
+pEnd = 17; 
+
+% LOAD S matrices
+load('Masks-LiuData-1.mat')
+S1 = S;
+Mlist1 = Mlist;
+load('Masks-LiuData-2.mat')
+S2 = S;
+Mlist2 = Mlist;
+load('Masks-LiuData-3.mat')
+S3 = S;
+Mlist3 = Mlist;
+
+% SliveAll = [S1 S2];
+
+predictionAllSVM = [];
+predictionAllSVMLive = [];
+predictionAllSVMFake = [];
+testPeople = [];
+labelsSVM = [];
+predtests = [];
+Ytss = [];
+orderTrAll = [];
+orderTsAll = []; 
+    
+for p = 1:pEnd
+    
+    testPerson1 = startTestPerson1(p):endTestPerson1(p);
+    if isempty(startTestPerson2) ~= 1
+        testPerson2 = startTestPerson2(p):endTestPerson2(p);
+    else
+        testPerson2 = [];
+    end
+     if isempty(startTestPerson2) ~= 1
+        testPerson3 = startTestPerson3(p):endTestPerson3(p);
+     else
+         testPerson3 = [];
+     end
+%     testPerson = [testPerson1 testPerson2 testPerson3];
+    testPersonInit = [testPerson1 testPerson2 testPerson3];
+    
+    testPerson = testPersonInit;%(1:4); % videos to leave out for testing, if live, 
                                           % those will not be considered
                                           % for learning p and q
-    Jlist = setdif([1:size(Slive,2)], j_leave); % keep all videos for training 
+    trainPeople = setdiff(allPeople, testPerson); % keep all videos for training 
                                                 % and learning p and q
-                                                % except j_leave ones
-    k = 3; % keep top 3 eigenvectors, convert to 90 % variance instead
+                                            % except j_leave ones
+% get e and p iteratively
+    
+
+    Slive_p1 = S1(:,[trainPeople(1)*N:trainPeople(end)*N]);  % include each tr persons 16 ROIs
+    Slive_p2 = S2(:,[trainPeople(1)*N:trainPeople(end)*N]);
+    Slive_p = [Slive_p1 Slive_p1];
+    
+    delta = 10^-3; % convergence threshold
+        % r = 3; % bpm error toleration
+    %     TODO: fix this part to determine indices defined as m list to leave out
+%     k = 3; % keep top 3 eigenvectors, convert to 90 % variance instead
     alpha = 0.9; % in percent of variance
     N = 16;
-    warning off
-    [pVec] =  iterate_p_e(Slive, delta, k, Jlist, N, alpha); % only computed for live 
+%     warning o ff
+    [pVec] =  iterate_p_e(Slive_p, delta, N, alpha); % only computed for live 
+    % previously when keeping repeating pairs, q was 16 x 16, but it should
+    % be 1 x C(N,2)+N and then diagonalized, then q 16 x 16 was vectorized
+    % and diagonalized anyway to 16^2 x 16^2. Now, it'll be lower
+    % dimensional
     q = get_q(pVec,N); % only computed for live 
     % Q =diag(q(:));   % Q = R'*R;
     % R = sqrtm(Q);
-    save(['Masks-LiuData-' num2str(f) '.mat'], 'pVec', 'q')
-% else
-%     save(['Masks-LiuData-' num2str(f) '.mat'], 'S', 'Mlist')
-end
-
-
-
-end
+save(['Masks-LiuData-Live-p-' num2str(p) '.mat'], 'pVec', 'q')
+  
+   
 %% SVM
 
 saveLiuFolder = 'LiuMasks/';
@@ -185,6 +228,5 @@ fakeFolders = 3;
 N = 16;
 % attack = 'photo';
  [scores_SVM_postcell, scores_SVMcell, Ytsscell, Ytrscell, testPeople, labelsSVMcell, ...
-       orderTscell]  = SVM_LiuTogether(saveLiuFolder, N, q, liveFolders, fakeFolders, Jlist, j_leave);
-   
- end
+       orderTscell]  = SVM_LiuTogether(saveLiuFolder, N, q, liveFolders, fakeFolders, testPerson, trainPeople);
+end % end p, for each LOOV person

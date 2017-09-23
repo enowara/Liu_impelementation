@@ -11,42 +11,42 @@
     orderTrAll = [];
     orderTsAll = []; 
         
-%     startTestPerson1 = (1:4:(60));
-%     startTestPerson2 = (1:4:(60))+60;
-%     startTestPerson3 = (1:2:(60))+120 ;
+% %     startTestPerson1 = (1:4:(60));
+% %     startTestPerson2 = (1:4:(60))+60;
+% %     startTestPerson3 = (1:2:(60))+120 ;
+% %     
+% %     endTestPerson1 =   ((1:4:(60)) + 3 );
+% %     endTestPerson2 =     (((1:4:(60))+60) +3);
+% %     endTestPerson3 =     (((1:2:(60))+120) +1); 
+% %     
+% startTestPerson1 = [1:5:85];
+%     endTestPerson1 = [1:5:85] + 4;
+% 
+%     startTestPerson2 = [];
+%     startTestPerson3 = [];
+%     endTestPerson2 = [];
+%     endTestPerson3 = [];
 %     
-%     endTestPerson1 =   ((1:4:(60)) + 3 );
-%     endTestPerson2 =     (((1:4:(60))+60) +3);
-%     endTestPerson3 =     (((1:2:(60))+120) +1); 
-%     
-startTestPerson1 = [1:5:85];
-    endTestPerson1 = [1:5:85] + 4;
-
-    startTestPerson2 = [];
-    startTestPerson3 = [];
-    endTestPerson2 = [];
-    endTestPerson3 = [];
+%     allPeople = startTestPerson1(1):endTestPerson1(end); 
+% %     allPeople = startTestPerson1(1):endTestPerson3(end);
+% %     pEnd = 15;
+%     pEnd = 17;  
+%    
+%    for p = 1:pEnd  % p = 1:17 if 3DMAD, 15 per folder for Replay - test, train, devel - different people
     
-    allPeople = startTestPerson1(1):endTestPerson1(end); 
-%     allPeople = startTestPerson1(1):endTestPerson3(end);
-%     pEnd = 15;
-    pEnd = 17;  
-   
-   for p = 1:pEnd;  % p = 1:17 if 3DMAD, 15 per folder for Replay - test, train, devel - different people
-    
-    testPerson1 = startTestPerson1(p):endTestPerson1(p);
-    if isempty(startTestPerson2) ~= 1
-        testPerson2 = startTestPerson2(p):endTestPerson2(p);
-    else
-        testPerson2 = [];
-    end
-     if isempty(startTestPerson2) ~= 1
-        testPerson3 = startTestPerson3(p):endTestPerson3(p);
-     else
-         testPerson3 = [];
-     end
-%     testPerson = [testPerson1 testPerson2 testPerson3];
-    testPersonInit = [testPerson1 testPerson2 testPerson3];
+%     testPerson1 = startTestPerson1(p):endTestPerson1(p);
+%     if isempty(startTestPerson2) ~= 1
+%         testPerson2 = startTestPerson2(p):endTestPerson2(p);
+%     else
+%         testPerson2 = [];
+%     end
+%      if isempty(startTestPerson2) ~= 1
+%         testPerson3 = startTestPerson3(p):endTestPerson3(p);
+%      else
+%          testPerson3 = [];
+%      end
+% %     testPerson = [testPerson1 testPerson2 testPerson3];
+%     testPersonInit = [testPerson1 testPerson2 testPerson3];
 
 %     trainPeople = setdiff(allPeople, testPerson);
     % get training live %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,8 +54,8 @@ startTestPerson1 = [1:5:85];
     for ii = 1:3
                PdataLtr = [];
           for f = liveFolders
-              testPersonLiv = testPersonInit;%(1:4);
-              trainPeople = setdiff(allPeople, testPersonLiv);
+%               testPersonLiv = testPersonInit;%(1:4);
+%               trainPeople = setdiff(allPeople, testPersonLiv);
               if ii == 1
                 load(['Train-LiuData-' num2str(f) '.mat'])
               elseif ii == 2
@@ -102,7 +102,7 @@ startTestPerson1 = [1:5:85];
     for ii = 1:3
                 PdataLts = [];
           for f = liveFolders
-              testPersonLiv = testPersonInit;%(1:4);
+%               testPersonLiv = testPersonInit;%(1:4);
 %               trainPeople = setdiff(allPeople, testPersonLiv);
               if ii == 1
                 load(['Train-LiuData-' num2str(f) '.mat'])
@@ -147,8 +147,8 @@ startTestPerson1 = [1:5:85];
                PdataFtr = [];
           for f = fakeFolders
 %                  if strcmp(attack,'photo')
-                    testPersonAt = testPersonInit;%([1,2,5,6,9,10]);
-                    trainPeople = setdiff(allPeople, testPersonInit);
+%                     testPersonAt = testPersonInit;%([1,2,5,6,9,10]);
+%                     trainPeople = setdiff(allPeople, testPersonInit);
 %                 elseif strcmp(attack,'video')
 %                     testPersonAt = testPersonInit([3,4,7,8]);
 %                     trainPeople = setdiff(allPeople, testPersonInit);
@@ -199,7 +199,7 @@ startTestPerson1 = [1:5:85];
     PdataFts = [];
           for f = fakeFolders
 %               if strcmp(attack,'photo')
-                    testPersonAt = testPersonInit;%([1,2,5,6,9,10]);
+%                     testPersonAt = testPersonInit;%([1,2,5,6,9,10]);
 %                     trainPeople = setdiff(allPeople, testPersonAt);
 %                 elseif strcmp(attack,'video')
 %                     testPersonAt = testPersonInit([3,4,7,8]);

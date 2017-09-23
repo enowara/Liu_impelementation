@@ -1,4 +1,4 @@
-function numEigenVec = find_90_perc_eigen(s, perc_var)
+function numEigenVec = find_perc_eigen(s, perc_var)
 
 % input
 % s - matrix of eigenvalues

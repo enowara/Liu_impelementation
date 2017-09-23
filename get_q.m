@@ -13,7 +13,8 @@ for i = 1:N % for each ROI
 %         q_ij = x_ij*p_i*p_j;
         q_i = [q_i q_ij];
     end
-    q = [q; q_i];
+    
+    q = [q q_i];
 end
 
 % append back into NxN matrix q
