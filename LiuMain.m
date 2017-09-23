@@ -8,6 +8,9 @@ folderMain = '/media/ewa/SH/DatasetsAntiSpoof/3dmadDirectories/';
 % folderReal = 'devel/real/';
 % folderAttackf = 'devel/attack/fixed/';  % both contain photo, vid in adverse and controlled
 % folderAttackh = 'devel/attack/hand/';
+datte = '09-23';
+saveLiuFolder = ['LiuMasks/' datte '/'];
+mkdir(saveLiuFolder)
 
  for f = 1:3
      S = [];
@@ -124,7 +127,7 @@ end
         continue
     end
    end % end m
-save(['Masks-LiuData-' num2str(f) '.mat'], 'S', 'Mlist')
+save([saveLiuFolder 'Masks-LiuData-' num2str(f) '.mat'], 'S', 'Mlist')
  end % end f
    % iterate through videos, each time leaving out different ones for
    % validation 
@@ -150,15 +153,16 @@ allPeople = startTestPerson1(1):endTestPerson1(end);
 pEnd = 17; 
 
 % LOAD S matrices
-load('Masks-LiuData-1.mat')
+load([saveLiuFolder 'Masks-LiuData-1.mat'])
 S1 = S;
 Mlist1 = Mlist;
-load('Masks-LiuData-2.mat')
+load([saveLiuFolder 'Masks-LiuData-2.mat'])
 S2 = S;
 Mlist2 = Mlist;
-load('Masks-LiuData-3.mat')
-S3 = S;
+load([saveLiuFolder 'Masks-LiuData-3.mat'])
+Sfake_p = S;
 Mlist3 = Mlist;
+Mlist_fake_p = Mlist3;
 
 % SliveAll = [S1 S2];
 
@@ -169,10 +173,11 @@ testPeople = [];
 labelsSVM = [];
 predtests = [];
 Ytss = [];
-orderTrAll = [];
-orderTsAll = []; 
+
     
 for p = 1:pEnd
+    
+    % if Replay testPersonInit(1:4); change indicing a little
     
     testPerson1 = startTestPerson1(p):endTestPerson1(p);
     if isempty(startTestPerson2) ~= 1
@@ -196,37 +201,111 @@ for p = 1:pEnd
                                             % except j_leave ones
 % get e and p iteratively
     
+% TODO: fix indicing to loop over correct columns and keep correct Mlist
 
-    Slive_p1 = S1(:,[trainPeople(1)*N:trainPeople(end)*N]);  % include each tr persons 16 ROIs
-    Slive_p2 = S2(:,[trainPeople(1)*N:trainPeople(end)*N]);
-    Slive_p = [Slive_p1 Slive_p1];
+% find training people indices for N ROIs
+Str_pStart = (trainPeople-1)*N+1;
+Str_pEnd = (trainPeople)*N;
+Str_idx = [];
+for ll = 1:length(Str_pStart)
+    Str_i = Str_pStart(ll):Str_pEnd(ll);
+    Str_idx = [Str_idx Str_i];
+end
+      
+    Slive_p1 = S1(:,Str_idx);% include each tr persons 16 ROIs
+    Slive_p2 = S2(:,Str_idx);
+    Slive_p_tr = [Slive_p1 Slive_p2];
+    
+    Sfake_p_tr = S3(:,Str_idx);
+    
+% find training people indices     
+Sts_pStart = (testPerson-1)*N+1;
+Sts_pEnd = (testPerson)*N;
+Sts_idx = [];
+for ll = 1:length(Sts_pStart)
+    Sts_i = Sts_pStart(ll):Sts_pEnd(ll);
+    Sts_idx = [Sts_idx Sts_i];
+end    
+
+    Slive_p1_ts = S1(:,Sts_idx);% include each tr persons 16 ROIs
+    Slive_p2_ts = S2(:,Sts_idx);
+    Slive_p_ts = [Slive_p1_ts Slive_p2_ts];
+    
+    Sfake_p_ts = S3(:,Sts_idx);
+    
+    Mlist_live_p1_tr = Mlist1([trainPeople(1):trainPeople(end)], :);
+    Mlist_live_p2_tr = Mlist2([trainPeople(1):trainPeople(end)], :);
+    Mlist_live_p_tr = [Mlist_live_p1_tr; Mlist_live_p2_tr];
+    
+    Mlist_fake_p_tr = Mlist3([trainPeople(1):trainPeople(end)], :);
+    
+    Mlist_live_p1_ts = Mlist1([testPerson(1):testPerson(end)], :);
+    Mlist_live_p2_ts = Mlist2([testPerson(1):testPerson(end)], :);
+    Mlist_live_p_ts = [Mlist_live_p1_ts; Mlist_live_p2_ts];
+    
+    Mlist_fake_p_ts = Mlist3([testPerson(1):testPerson(end)], :);
     
     delta = 10^-3; % convergence threshold
         % r = 3; % bpm error toleration
     %     TODO: fix this part to determine indices defined as m list to leave out
 %     k = 3; % keep top 3 eigenvectors, convert to 90 % variance instead
     alpha = 0.9; % in percent of variance
-    N = 16;
-%     warning o ff
-    [pVec] =  iterate_p_e(Slive_p, delta, N, alpha); % only computed for live 
+% datte = '09-23';
+    saveLiuFolder = ['LiuMasks/' datte '/'];
+    mkdir(saveLiuFolder)
+%     warning off
+    [pVec] =  iterate_p_e(Slive_p_tr, delta, N, alpha); % only computed for live 
     % previously when keeping repeating pairs, q was 16 x 16, but it should
     % be 1 x C(N,2)+N and then diagonalized, then q 16 x 16 was vectorized
     % and diagonalized anyway to 16^2 x 16^2. Now, it'll be lower
     % dimensional
     q = get_q(pVec,N); % only computed for live 
-    % Q =diag(q(:));   % Q = R'*R;
+    Q =diag(q(:));   % Q = R'*R;
     % R = sqrtm(Q);
-save(['Masks-LiuData-Live-p-' num2str(p) '.mat'], 'pVec', 'q')
+save([saveLiuFolder 'Masks-LiuData-Live-p-' num2str(p) '.mat'], 'pVec', 'q')
   
-   
 %% SVM
 
-saveLiuFolder = 'LiuMasks/';
-mkdir(saveLiuFolder)
 liveFolders = 1:2;
 fakeFolders = 3;
-N = 16;
 % attack = 'photo';
- [scores_SVM_postcell, scores_SVMcell, Ytsscell, Ytrscell, testPeople, labelsSVMcell, ...
-       orderTscell]  = SVM_LiuTogether(saveLiuFolder, N, q, liveFolders, fakeFolders, testPerson, trainPeople);
+labelsSVM = [];
+predtests = [];
+Ytss = [];
+orderTrAll = [];
+orderTsAll = []; 
+
+testPersonLiv = testPerson; % change if Replay
+testPersonAt = testPerson;
+ [score_posterior, score, Yts, Ytr, labelSVM, predictionSVM, predictionSVMLive, ...
+     predictionSVMFake] = SVM_Liu(saveLiuFolder, N, Q, liveFolders, ...
+     fakeFolders, testPerson, testPersonLiv, testPersonAt, trainPeople, ...
+     Slive_p_tr, Sfake_p_tr, Slive_p_ts, Sfake_p_ts, ...
+     Mlist_live_p_tr, Mlist_fake_p_tr, Mlist_live_p_ts, Mlist_fake_p_ts);
+     
+     
+   % append results from each LOOV run
+scores_SVM_postcell{p} = score_posterior;
+scores_SVMcell{p} = num2cell(score);
+Ytsscell{p} = Yts;
+Ytrscell{p} = Ytr;
+testPeople = [testPeople; testPerson];
+labelsSVMcell{p} = labelSVM;
+predictionAllSVM = [predictionAllSVM; predictionSVM];
+predictionAllSVMLive = [predictionAllSVMLive; predictionSVMLive];
+predictionAllSVMFake = [predictionAllSVMFake; predictionSVMFake];
 end % end p, for each LOOV person
+
+% sum up accuracy over all test people    
+        predictionAverageSVM = sum(predictionAllSVM)/length(predictionAllSVM);
+        disp([num2str(predictionAverageSVM) '% Average SVM accuracy']);
+
+        predictionAverageSVMLive = sum(predictionAllSVMLive)/length(predictionAllSVMLive);
+        disp([num2str(predictionAverageSVMLive) '% Average Live SVM accuracy']);
+        predictionAverageSVMFake = sum(predictionAllSVMFake)/length(predictionAllSVMFake);
+        disp([num2str(predictionAverageSVMFake) '% Average Fake SVM accuracy']);
+
+save([saveLiuFolder 'SVMresults_all_p.mat'], scores_SVM_postcell, scores_SVMcell, ...
+    Ytsscell, Ytrscell, testPeople, labelsSVMcell, predictionAllSVM, ...
+    predictionAllSVMLive, predictionAllSVMFake, predictionAverageSVM, ...
+    predictionAverageSVMLive, predictionAverageSVMFake)
