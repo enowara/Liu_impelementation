@@ -158,7 +158,7 @@ function  [score_posterior, score, Yts, Ytr, labelSVM, predictionSVM, prediction
 %         Yts = XYts(:,end);
         
         %% SVM
-        SVMModel = fitcsvm(Xtr,Ytr,'KernelFunction','rbf','Standardize',true);
+        SVMModel = fitcsvm(Xtr,Ytr,'KernelFunction','linear','Standardize',true);
         [labelSVM,score] = predict(SVMModel,Xts);
         predictionSVM = (length(find(labelSVM==Yts))/length(Yts))*100;
 
