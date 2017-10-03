@@ -6,7 +6,9 @@ folderReal_Alll = {'train/real/', 'test/real/', 'devel/real/'};
 folderAttackf_All = {'train/attack/fixed/', 'test/attack/fixed/', 'devel/attack/fixed/'};  
 folderAttackh_All = {'train/attack/hand/', 'test/attack/hand/', 'devel/attack/hand/'};
 
-datte = '10-02';
+DlibFolder = {'IDAP1stFrameNew', 'IDAP1stFrameNewTest', 'IDAP1stFrameNewDevel'};
+
+datte = '10-03';
 saveLiuFolder = ['LiuReplay/' datte '/'];
 mkdir(saveLiuFolder)
 
@@ -36,6 +38,8 @@ for f = 1:3
         end
         fileNameList = dir([[folderMain folderEnd] ['*' '.mov']]); %
 
+        clear imgCells
+        
         for i =1:length(fileNameList)
             imgCells{i} = fileNameList(i).name;  
         end
@@ -56,8 +60,8 @@ for f = 1:3
             
         end
             
-       for  m = 1:length(fileNameList)
-        try
+       for  m = 8%1:length(fileNameList)
+%         try
             vidName = img_names{m};       
             % read in the videos
             v = VideoReader([folderMain folderEnd vidName]);
@@ -74,7 +78,7 @@ for f = 1:3
 %             vg = permute(vg,[1,2,4,3]);   
         t=1; % first frame
             firstFrame = vg(:,:,t);
-        load(['/media/ewa/Data/PreliminaryResultsToCleanUp/FromBPADCameraVitals2016/Data/IDAP1stFrameNewDevel/' num2str(f) 'Dlib/dLib-' vidName '.png.mat'])
+        load(['/media/ewa/Data/PreliminaryResultsToCleanUp/FromBPADCameraVitals2016/Data/' DlibFolder{FF} '/' num2str(f) 'Dlib/dLib-' vidName '.png.mat'])
 
             firstPoints = pointsResized;
     
@@ -139,17 +143,18 @@ for f = 1:3
         if  length(find(isnan(pulseXY))) > 0 
             continue
         else 
+            
             S_init = [S_init pulseXY];   % for all people together
             Mlist_init = [Mlist_init; f m]; % keep track of all the videos and from which folder, to split for LOOV tr and ts
         end 
-    catch 
-        continue
-    end
+%     catch 
+%         continue
+%     end
    end % end m
-   
-    end % end FF
     S = [S S_init];
     Mlist = [Mlist; Mlist_init];
+    end % end FF
+    
 save([saveLiuFolder 'Replay-LiuData-' num2str(f) '.mat'], 'S', 'Mlist', 'NameListAll')
  end % end f
  

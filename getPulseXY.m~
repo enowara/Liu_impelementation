@@ -35,18 +35,19 @@ end
 
 % if the difference between the current averaged signal length is much
 % smaller than the actual length
-if (L-size(Rn,1)) > 2*Fps
+if (L-size(Rn,1)) > 2
     % add the last end part to the PPG signal
-    meanShortR = mean(PPGr(size(Rn,1):L)); 
-    Rn((size(Rn,1):L),c) = PPGr((size(Rn,1):L),c)./meanShortR;
-    meanShortG = mean(PPGg(size(Gn,1):L)); 
-    Gn((size(Gn,1):L),c) = PPGg((size(Gn,1):L),c)./meanShortG;
-    meanShortB = mean(PPGb(size(Bn,1):L)); 
-    Bn((size(Bn,1):L),c) = PPGb((size(Bn,1):L),c)./meanShortB;
+    meanShortR_2 = mean(PPGr(size(Rn,1):L)); 
+    Rn_2((size(Rn,1):L),c) = PPGr((size(Rn,1):L),c)./meanShortR;
+    meanShortG_2 = mean(PPGg(size(Gn,1):L)); 
+    Gn_2((size(Gn,1):L),c) = PPGg((size(Gn,1):L),c)./meanShortG;
+    meanShortB_2 = mean(PPGb(size(Bn,1):L)); 
+    Bn_2((size(Bn,1):L),c) = PPGb((size(Bn,1):L),c)./meanShortB;
+    
+    Rn = [Rn; Rn_2];
+    Gn = [Gn; Gn_2];
+    Rn = [Rn; Bn_2];
 end
-
-end % end c
-
 X_s = 3*Rn -2*Gn;
 Y_s = 1.5*Rn +Gn - 1.5*Bn;
 
