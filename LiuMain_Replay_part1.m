@@ -132,6 +132,11 @@ for f = 1:3
             [PPGrawR] = getPPGperChannel(chR, vg, gridROI, nn);
             [PPGrawG] = getPPGperChannel(chG, vg, gridROI, nn);
             [PPGrawB] = getPPGperChannel(chB, vg, gridROI, nn);
+            
+            % only keep the length corresponding to shortest video in dataet
+            PPGrawR = PPGrawR(1:229,:);
+            PPGrawG = PPGrawG(1:229,:);
+            PPGrawB = PPGrawB(1:229,:);
 
             % Chrom
             % raw PPG for a grid region 
@@ -151,7 +156,7 @@ for f = 1:3
 %         continue
 %     end
    end % end m
-    S = [S S_init];
+    S = [S S_init]; % are the videos going to be the same length to put them together here
     Mlist = [Mlist; Mlist_init];
     end % end FF
     
