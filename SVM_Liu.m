@@ -1,6 +1,6 @@
 function  [score_posterior, score, Yts, Ytr, labelSVM, predictionSVM, predictionSVMLive, ...
-     predictionSVMFake] = SVM_LiuTogether(saveLiuFolder, N, Q, liveFolders, ...
-     fakeFolders, testPerson, testPersonLiv, testPersonAt, trainPeople, Slive_p_tr, ...
+     predictionSVMFake] = SVM_Liu(saveLiuFolder, N, Q, liveFolders, ...
+     fakeFolders, testPersonLiv, testPersonAt, trainPeopleLiv, trainPeopleAt, Slive_p_tr, ...
      Sfake_p_tr, Slive_p_ts, Sfake_p_ts, Mlist_live_p_tr, Mlist_fake_p_tr, ...
      Mlist_live_p_ts, Mlist_fake_p_ts)
     
@@ -8,7 +8,7 @@ function  [score_posterior, score, Yts, Ytr, labelSVM, predictionSVM, prediction
     R = sqrtm(Q); % computed once for each p, 
 %                     q only depends on Slive which only changes with p
     for f = liveFolders
-        for ff = 1:length(trainPeople)
+        for ff = 1:length(trainPeopleLiv)
             m = trainPeople(ff);
             try
                 % get indices from Mlist
@@ -53,16 +53,8 @@ function  [score_posterior, score, Yts, Ytr, labelSVM, predictionSVM, prediction
           
               % get training fake %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%            
     PdataFtr = [];
-    for f = fakeFolders
-        % if replay
-%                  if strcmp(attack,'photo')
-%                     testPersonAt = testPersonInit([1,2,5,6,9,10]);
-%                     trainPeople = setdiff(allPeople, testPersonInit);
-%                 elseif strcmp(attack,'video')
-%                     testPersonAt = testPersonInit([3,4,7,8]);
-%                     trainPeople = setdiff(allPeople, testPersonInit);
-%                  end            
-        for ff = 1:length(trainPeople)
+    for f = fakeFolders           
+        for ff = 1:length(trainPeopleAt)
             m = trainPeople(ff);
             try
                 % get indices from Mlist
@@ -85,13 +77,6 @@ function  [score_posterior, score, Yts, Ytr, labelSVM, predictionSVM, prediction
           
     PdataFts = [];
           for f = fakeFolders
-%               if strcmp(attack,'photo')
-%                     testPersonAt = testPersonInit([1,2,5,6,9,10]);
-% %                     trainPeople = setdiff(allPeople, testPersonAt);
-%                 elseif strcmp(attack,'video')
-%                     testPersonAt = testPersonInit([3,4,7,8]);
-% %                     trainPeople = setdiff(allPeople, testPersonAt);
-%               end
               for ff = 1:length(testPersonAt)
                   m = testPersonAt(ff);
                   try

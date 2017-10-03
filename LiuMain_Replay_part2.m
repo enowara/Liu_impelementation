@@ -1,6 +1,6 @@
 % after part 1 has already been run, which computed the S matrices with raw
 % 
-datte = '10-02';
+datte = '10-03';
 saveLiuFolder = ['LiuReplay/' datte '/'];
 mkdir(saveLiuFolder)
 
@@ -83,32 +83,6 @@ for p = 1:pEnd
     
 %     testPerson = [testPerson1 testPerson2 testPerson3];
     testPersonInit = [testPerson1 testPerson2 testPerson3];
-                                          % those will not be considered
-                                          % for learning p and q
-% % f = 2 - fixed, 3 - handheld                                          
-% % split such that not just one person or one video is left out, append from the train, test, devel                                       
-% if strcmp(light_condition, 'adverse')                                          
-%     testPersonLiv = testPersonInit(1:2);
-% elseif strcmp(light_condition, 'controlled')                                          
-%     testPersonLiv = testPersonInit(3:4);
-% elseif strcmp(light_condition, 'all_light')                                          
-%     testPersonLiv = testPersonInit(1:4);
-% end
-
-% if strcmp(attack,'photo') & strcmp(light_condition,'all_light')
-%     testPersonAt = testPersonInit
-% elseif strcmp(attack,'video') & strcmp(light_condition,'all_light')
-%     testPersonAt = testPersonInit([3,4,7,8]);
-% elseif strcmp(attack,'photo') & strcmp(light_condition,'adverse')
-%     testPersonAt = testPersonInit([1,5,9]);
-% elseif strcmp(attack,'video') & strcmp(light_condition,'adverse')
-%     testPersonAt = testPersonInit([3,7]);
-%     
-% elseif strcmp(attack,'photo') & strcmp(light_condition,'controlled')
-%     testPersonAt = testPersonInit([2,6,10]);
-% elseif strcmp(attack,'video') & strcmp(light_condition,'controlled')
-%     testPersonAt = testPersonInit([4,8]);
-% end
 
 % choose the subset for testing -  live
 
@@ -284,18 +258,25 @@ end
 %% SVM
 
 liveFolders = 1; 
-fakeFolders = 2:3;  % if only 2 - fixed, 3 - handheld
+fakeFolders = 2;%:3;  % if only 2 - fixed, 3 - handheld
+
+if fakeFolders == 2
+    motion_set_up = 'fixed';
+elseif fakeFolders == 3
+    motion_set_up = 'handheld';
+end
+    
 labelsSVM = [];
 predtests = [];
 Ytss = [];
 orderTrAll = [];
 orderTsAll = []; 
 
-testPersonLiv = testPerson; % change if Replay
-testPersonAt = testPerson;
+% testPersonLiv = testPerson; % change if Replay
+% testPersonAt = testPerson;
  [score_posterior, score, Yts, Ytr, labelSVM, predictionSVM, predictionSVMLive, ...
      predictionSVMFake] = SVM_Liu(saveLiuFolder, N, Q, liveFolders, ...
-     fakeFolders, testPerson, testPersonLiv, testPersonAt, trainPeople, ...
+     fakeFolders, testPersonLiv, testPersonAt, trainPeopleLiv, trainPeopleAt, ...
      Slive_p_tr, Sfake_p_tr, Slive_p_ts, Sfake_p_ts, ...
      Mlist_live_p_tr, Mlist_fake_p_tr, Mlist_live_p_ts, Mlist_fake_p_ts);
      
@@ -321,13 +302,10 @@ end % end p, for each LOOV person
         predictionAverageSVMFake = sum(predictionAllSVMFake)/length(predictionAllSVMFake);
         disp([num2str(predictionAverageSVMFake) '% Average Fake SVM accuracy']);
 
-save([saveLiuFolder '_' train_cases '_' light_condition '_' attack '_' 'SVMresults_all_p.mat'], 'scores_SVM_postcell', 'scores_SVMcell', ...
+save([saveLiuFolder '_' motion_set_up '_' train_cases '_' light_condition '_' attack '_' 'SVMresults_all_p.mat'], 'scores_SVM_postcell', 'scores_SVMcell', ...
     'Ytsscell', 'Ytrscell', 'testPeople', 'labelsSVMcell', 'predictionAllSVM', ...
     'predictionAllSVMLive', 'predictionAllSVMFake', 'predictionAverageSVM', ...
     'predictionAverageSVMLive', 'predictionAverageSVMFake')
-
-
-% toc
 
         end % end t3
     end % end t2

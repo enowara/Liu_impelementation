@@ -35,7 +35,7 @@ end
 
 % if the difference between the current averaged signal length is much
 % smaller than the actual length
-if (L-size(Rn,1)) > 2*Fps
+if (L-size(Rn,1)) > 1*Fps
     % add the last end part to the PPG signal
     meanShortR = mean(PPGr(size(Rn,1):L)); 
     Rn((size(Rn,1):L),c) = PPGr((size(Rn,1):L),c)./meanShortR;
@@ -51,19 +51,36 @@ X_s = 3*Rn -2*Gn;
 Y_s = 1.5*Rn +Gn - 1.5*Bn;
 
 % bandpass filter the signals
-load('../highpass_05_30.mat')
-load('../lowpass_5_30.mat')
-for c = 1:size(PPGr,2)
-    PPG2filt0 =  X_s(:,c);
-    PPG2filt1 = filtfilt(lowpass_5,1,PPG2filt0);  %low pass
-    PPG2filt2 = filtfilt(highpass_05,IIR_part,PPG2filt1); % high pass
-    X_f(:,c) = PPG2filt2;
+if Fps == 30
+    load('../highpass_05_30.mat') % replace with bandpass filters for 25 fps
+    load('../lowpass_5_30.mat')
+    for c = 1:size(PPGr,2)
+        PPG2filt0 =  X_s(:,c);
+        PPG2filt1 = filtfilt(lowpass_5,1,PPG2filt0);  %low pass
+        PPG2filt2 = filtfilt(highpass_05,IIR_part,PPG2filt1); % high pass
+        X_f(:,c) = PPG2filt2;
 
-    PPG2filt0 =  Y_s(:,c);
-    PPG2filt1 = filtfilt(lowpass_5,1,PPG2filt0);  %low pass
-    PPG2filt2 = filtfilt(highpass_05,IIR_part,PPG2filt1); % high pass
-    Y_f(:,c) = PPG2filt2;
-end         
+        PPG2filt0 =  Y_s(:,c);
+        PPG2filt1 = filtfilt(lowpass_5,1,PPG2filt0);  %low pass
+        PPG2filt2 = filtfilt(highpass_05,IIR_part,PPG2filt1); % high pass
+        Y_f(:,c) = PPG2filt2;
+    end 
+
+elseif Fps == 25
+    load('../EwaHighPass.mat')
+    load('../EwaLowPass.mat')
+    for c = 1:size(PPGr,2)
+        PPG2filt0 =  X_s(:,c);
+        PPG2filt1 = filtfilt(b, 1, PPG2filt0);  %low pass
+        PPG2filt2 = filtfilt(b_i, a_i,PPG2filt1); % high pass
+        X_f(:,c) = PPG2filt2;
+
+        PPG2filt0 =  Y_s(:,c);
+        PPG2filt1 = filtfilt(b, 1, PPG2filt0);  %low pass
+        PPG2filt2 = filtfilt(b_i, a_i, PPG2filt1); % high pass
+        Y_f(:,c) = PPG2filt2;
+    end 
+end
 
 
 alpha = (X_f)./(Y_f);

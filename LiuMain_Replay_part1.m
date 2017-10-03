@@ -60,8 +60,8 @@ for f = 1:3
             
         end
             
-       for  m = 8%1:length(fileNameList)
-%         try
+       for  m = 1:length(fileNameList)
+        try
             vidName = img_names{m};       
             % read in the videos
             v = VideoReader([folderMain folderEnd vidName]);
@@ -152,9 +152,10 @@ for f = 1:3
             S_init = [S_init pulseXY];   % for all people together
             Mlist_init = [Mlist_init; f m]; % keep track of all the videos and from which folder, to split for LOOV tr and ts
         end 
-%     catch 
-%         continue
-%     end
+    catch 
+        continue
+        end
+    disp([num2str(f) '-' num2str(FF) '-' num2str(m)])
    end % end m
     S = [S S_init]; % are the videos going to be the same length to put them together here
     Mlist = [Mlist; Mlist_init];
