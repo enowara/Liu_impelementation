@@ -9,7 +9,7 @@ function  [score_posterior, score, Yts, Ytr, labelSVM, predictionSVM, prediction
 %                     q only depends on Slive which only changes with p
     for f = liveFolders
         for ff = 1:length(trainPeopleLiv)
-            m = trainPeople(ff);
+            m = trainPeopleLiv(ff);
             try
                 % get indices from Mlist
                 mrow = [f m];
@@ -55,7 +55,7 @@ function  [score_posterior, score, Yts, Ytr, labelSVM, predictionSVM, prediction
     PdataFtr = [];
     for f = fakeFolders           
         for ff = 1:length(trainPeopleAt)
-            m = trainPeople(ff);
+            m = trainPeopleAt(ff);
             try
                 % get indices from Mlist
                 mrow = [f m];

@@ -1,6 +1,6 @@
 % after part 1 has already been run, which computed the S matrices with raw
 % 
-datte = '10-02';
+datte = '10-03';
 saveLiuFolder = ['LiuReplay/' datte '/'];
 mkdir(saveLiuFolder)
 
@@ -27,18 +27,23 @@ pEnd = 15;
 load([saveLiuFolder 'Replay-LiuData-1.mat'])
 S1 = S;
 Mlist1 = Mlist;
-LiveNameList = NameList;
-clear NameList
+NameList1 = NameListAll;
+clear NameListAll
 
 load([saveLiuFolder 'Replay-LiuData-2.mat'])
 S2 = S;
 Mlist2 = Mlist;
-AttackNameList1 = NameList;
+NameList2 = NameListAll;
+clear NameListAll
 
 load([saveLiuFolder 'Replay-LiuData-3.mat'])
-Sfake_p = S;
+S3 = S;
 Mlist3 = Mlist;
-AttackNameList2 = NameList;
+NameList3 = NameListAll;
+clear NameListAll
+
+NameList_Live = [NameList1];
+NameList_Attack = [NameList2; NameList3];
 
 % Mlist_fake_p = Mlist3;
 
@@ -65,7 +70,7 @@ for t1 = 1:length(train_cases_All)
         for t3 = 1:length(attack_All)
             attack = attack_All{t3};
 
-for p = 1:pEnd
+for p = 1%:pEnd
     
     % if Replay testPersonInit(1:4); change indicing a little
     
@@ -83,38 +88,12 @@ for p = 1:pEnd
     
 %     testPerson = [testPerson1 testPerson2 testPerson3];
     testPersonInit = [testPerson1 testPerson2 testPerson3];
-                                          % those will not be considered
-                                          % for learning p and q
-% % f = 2 - fixed, 3 - handheld                                          
-% % split such that not just one person or one video is left out, append from the train, test, devel                                       
-% if strcmp(light_condition, 'adverse')                                          
-%     testPersonLiv = testPersonInit(1:2);
-% elseif strcmp(light_condition, 'controlled')                                          
-%     testPersonLiv = testPersonInit(3:4);
-% elseif strcmp(light_condition, 'all_light')                                          
-%     testPersonLiv = testPersonInit(1:4);
-% end
-
-% if strcmp(attack,'photo') & strcmp(light_condition,'all_light')
-%     testPersonAt = testPersonInit
-% elseif strcmp(attack,'video') & strcmp(light_condition,'all_light')
-%     testPersonAt = testPersonInit([3,4,7,8]);
-% elseif strcmp(attack,'photo') & strcmp(light_condition,'adverse')
-%     testPersonAt = testPersonInit([1,5,9]);
-% elseif strcmp(attack,'video') & strcmp(light_condition,'adverse')
-%     testPersonAt = testPersonInit([3,7]);
-%     
-% elseif strcmp(attack,'photo') & strcmp(light_condition,'controlled')
-%     testPersonAt = testPersonInit([2,6,10]);
-% elseif strcmp(attack,'video') & strcmp(light_condition,'controlled')
-%     testPersonAt = testPersonInit([4,8]);
-% end
 
 % choose the subset for testing -  live
 
 testPeople_Liv = [];
     for tt = testPersonInit 
-        TsNameList = LiveNameList(tt).name;
+        TsNameList = NameList_Live(tt).name;
         if  strcmp(light_condition,'all_light')
             idx_match = TsNameList; 
        elseif strcmp(light_condition,'adverse')
@@ -126,64 +105,65 @@ testPeople_Liv = [];
        if isempty(idx_match)
            idx_match = 0;
        end
-       testPeople_Liv = [testPeople_Liv; idx_match];
+       testPeople_Liv = [testPeople_Liv idx_match];
     end
 
     testPeople_idx_keep1 = find((testPeople_Liv) ~=0); % choose non zero indices
-    testPersonLiv = testPersonInit(testPeople_idx_keep1);
+    testPersonLiv = intersect(testPersonInit,testPeople_idx_keep1);
 % choose the subset for testing -  face attacks
 
     testPeople_At = [];
     for tt = testPersonInit 
-        TsNameList = NameList(tt).name;
-        if  strcmp(light_condition,'all_light')
-           idx_match = 
-       elseif strcmp(light_condition,'adverse')
-           idx_match = strfind(TsNameList, 'adverse');
-           idx_match = strfind(TsNameList, 'controlled');
+        TsNameList = NameList_Attack(tt).name;
+        if strcmp(attack,'photo') & strcmp(light_condition,'all_light')
+            idx_match = strfind(TsNameList, 'photo'); % match all the name strings containing photo
+       elseif strcmp(attack,'video') & strcmp(light_condition,'all_light')
+           idx_match = strfind(TsNameList, 'video');
+       elseif strcmp(attack,'photo') & strcmp(light_condition,'adverse')
+           idx_match = strfind(TsNameList, 'photo_adverse');
+       elseif strcmp(attack,'video') & strcmp(light_condition,'adverse')
+           idx_match = strfind(TsNameList, 'video_adverse');
+       elseif strcmp(attack,'photo') & strcmp(light_condition,'controlled')
+           idx_match = strfind(TsNameList, 'photo_controlled');
        elseif strcmp(attack,'video') & strcmp(light_condition,'controlled')
            idx_match = strfind(TsNameList, 'video_controlled');
         end
        if isempty(idx_match)
            idx_match = 0;
        end
-       testPeople_At = [testPeople_At; idx_match];
+       testPeople_At = [testPeople_At idx_match];
     end
 
     testPeople_idx_keep2 = find((testPeople_At) ~=0); % choose non zero indices
-    testPersonAt = testPersonInit(testPeople_idx_keep2);
+    testPersonAt = intersect(testPersonInit,testPeople_idx_keep2);
     
-    testPerson = [testPersonLiv; testPersonAt]; % combine correct indices from live and attack for testing
-    
+    testPerson = [testPersonLiv testPersonAt]; % combine correct indices from live and attack for testing
+    testPerson = sort(testPerson, 'ascend');
 
 if strcmp(train_cases,'all')
 % if keeping all situations for training
     trainPeople = setdiff(allPeople, testPerson);
+    trainPeopleLiv = trainPeople;
+    trainPeopleAt = trainPeople;
 elseif strcmp(train_cases,'specific')
     trainPeopleInit = setdiff(allPeople, testPerson); % m values
 
     
     % if keeping only specific scenarios for training -  live
-    trainPeople_Match2 = [];
+    trainPeople_Match1 = [];
     for tt = trainPeopleInit
-        TrNameList = NameList(tt).name;
-        if strcmp(attack,'photo') & strcmp(light_condition,'all_light')
-            idx_match = strfind(TrNameList, 'photo'); % match all the name strings containing photo
-       elseif strcmp(attack,'video') & strcmp(light_condition,'all_light')
-           idx_match = strfind(TrNameList, 'video');
-       elseif strcmp(attack,'photo') & strcmp(light_condition,'adverse')
-           idx_match = strfind(TrNameList, 'photo_adverse');
-       elseif strcmp(attack,'video') & strcmp(light_condition,'adverse')
-           idx_match = strfind(TrNameList, 'video_adverse');
-       elseif strcmp(attack,'photo') & strcmp(light_condition,'controlled')
-           idx_match = strfind(TrNameList, 'photo_controlled');
-       elseif strcmp(attack,'video') & strcmp(light_condition,'controlled')
-           idx_match = strfind(TrNameList, 'video_controlled');
-        end
+        TrNameList = NameList_Live(tt).name;
+        if  strcmp(light_condition,'all_light')
+           idx_match = trainPeopleInit; % match all the name strings containing photo
+       elseif strcmp(light_condition,'adverse')
+           idx_match = strfind(TrNameList, 'adverse');
+       elseif strcmp(light_condition,'controlled')
+           idx_match = strfind(TrNameList, 'controlled');
+       end
        if isempty(idx_match)
            idx_match = 0;
        end
-       trainPeople_Match1 = [trainPeople_Match1; idx_match];
+       trainPeople_Match1 = [trainPeople_Match1 idx_match];
     end
 
     trainPeople_idx_keep1 = find((trainPeople_Match1) ~=0); % choose non zero indices
@@ -193,7 +173,7 @@ elseif strcmp(train_cases,'specific')
     
     trainPeople_Match2 = [];
     for tt = trainPeopleInit
-        TrNameList = NameList(tt).name;
+        TrNameList = NameList_Attack(tt).name;
         if strcmp(attack,'photo') & strcmp(light_condition,'all_light')
             idx_match = strfind(TrNameList, 'photo'); % match all the name strings containing photo
        elseif strcmp(attack,'video') & strcmp(light_condition,'all_light')
@@ -210,13 +190,13 @@ elseif strcmp(train_cases,'specific')
        if isempty(idx_match)
            idx_match = 0;
        end
-       trainPeople_Match2 = [trainPeople_Match2; idx_match];
+       trainPeople_Match2 = [trainPeople_Match2 idx_match];
     end
 
     trainPeople_idx_keep2 = find((trainPeople_Match2) ~=0); % choose non zero indices
     trainPeopleAt = setdiff(trainPeople_idx_keep2, testPerson);
     
-    trainPeople = [trainPeopleLiv; trainPeopleAt];
+    trainPeople = [trainPeopleLiv trainPeopleAt];
 end
 
 % get e and p iteratively
@@ -233,10 +213,15 @@ for ll = 1:length(Str_pStart)
 end
       
     Slive_p1 = S1(:,Str_idx);% include each tr persons 16 ROIs
-    Slive_p2 = S2(:,Str_idx);
-    Slive_p_tr = [Slive_p1 Slive_p2];
+%     Slive_p2 = S2(:,Str_idx);
+%     Slive_p_tr = [Slive_p1 Slive_p2];
+    Slive_p_tr = Slive_p1;
     
-    Sfake_p_tr = Sfake_p(:,Str_idx);
+    Sfake_p_tr1 = S2(:,Str_idx);
+    Sfake_p_tr2 = S3(:,Str_idx);
+    
+    Sfake_p_tr = [Sfake_p_tr1 Sfake_p_tr2];
+    
     
 % find training people indices     
 Sts_pStart = (testPerson-1)*N+1;
@@ -248,23 +233,36 @@ for ll = 1:length(Sts_pStart)
 end    
 
     Slive_p1_ts = S1(:,Sts_idx);% include each tr persons 16 ROIs
-    Slive_p2_ts = S2(:,Sts_idx);
-    Slive_p_ts = [Slive_p1_ts Slive_p2_ts];
+    Slive_p_ts = Slive_p1_ts;
+%     Slive_p2_ts = S2(:,Sts_idx);
+%     Slive_p_ts = [Slive_p1_ts Slive_p2_ts];
+
+    Sfake_p_ts1 = S2(:,Sts_idx);
+    Sfake_p_ts2 = S3(:,Sts_idx);
     
-    Sfake_p_ts = Sfake_p(:,Sts_idx);
+    Sfake_p_ts = [Sfake_p_ts1 Sfake_p_ts2];
     
     Mlist_live_p1_tr = Mlist1([trainPeople(1):trainPeople(end)], :);
-    Mlist_live_p2_tr = Mlist2([trainPeople(1):trainPeople(end)], :);
-    Mlist_live_p_tr = [Mlist_live_p1_tr; Mlist_live_p2_tr];
+%     Mlist_live_p2_tr = Mlist2([trainPeople(1):trainPeople(end)], :);
+%     Mlist_live_p_tr = [Mlist_live_p1_tr; Mlist_live_p2_tr];
     
-    Mlist_fake_p_tr = Mlist3([trainPeople(1):trainPeople(end)], :);
+    Mlist_live_p_tr = Mlist_live_p1_tr;
+    
+    Mlist_fake_p2_tr = Mlist2([trainPeople(1):trainPeople(end)], :);
+    Mlist_fake_p3_tr = Mlist3([trainPeople(1):trainPeople(end)], :);
+    
+    Mlist_fake_p_tr = [Mlist_fake_p2_tr; Mlist_fake_p3_tr];
     
     Mlist_live_p1_ts = Mlist1([testPerson(1):testPerson(end)], :);
-    Mlist_live_p2_ts = Mlist2([testPerson(1):testPerson(end)], :);
-    Mlist_live_p_ts = [Mlist_live_p1_ts; Mlist_live_p2_ts];
+%     Mlist_live_p2_ts = Mlist2([testPerson(1):testPerson(end)], :);
+%     Mlist_live_p_ts = [Mlist_live_p1_ts; Mlist_live_p2_ts];
     
-    Mlist_fake_p_ts = Mlist3([testPerson(1):testPerson(end)], :);
+    Mlist_live_p_ts = Mlist_live_p1_ts;
+
+    Mlist_fake_p2_ts = Mlist2([testPerson(1):testPerson(end)], :);    
+    Mlist_fake_p3_ts = Mlist3([testPerson(1):testPerson(end)], :);
     
+    Mlist_fake_p_ts = [Mlist_fake_p2_ts; Mlist_fake_p3_ts];
     delta = 10^-3; % convergence threshold
         % r = 3; % bpm error toleration
     %     TODO: fix this part to determine indices defined as m list to leave out
@@ -285,18 +283,25 @@ end
 %% SVM
 
 liveFolders = 1; 
-fakeFolders = 2:3;  % if only 2 - fixed, 3 - handheld
+fakeFolders = 2;%:3;  % if only 2 - fixed, 3 - handheld
+
+if fakeFolders == 2
+    motion_set_up = 'fixed';
+elseif fakeFolders == 3
+    motion_set_up = 'handheld';
+end
+    
 labelsSVM = [];
 predtests = [];
 Ytss = [];
 orderTrAll = [];
 orderTsAll = []; 
 
-testPersonLiv = testPerson; % change if Replay
-testPersonAt = testPerson;
+% testPersonLiv = testPerson; % change if Replay
+% testPersonAt = testPerson;
  [score_posterior, score, Yts, Ytr, labelSVM, predictionSVM, predictionSVMLive, ...
      predictionSVMFake] = SVM_Liu(saveLiuFolder, N, Q, liveFolders, ...
-     fakeFolders, testPerson, testPersonLiv, testPersonAt, trainPeople, ...
+     fakeFolders, testPersonLiv, testPersonAt, trainPeopleLiv, trainPeopleAt, ...
      Slive_p_tr, Sfake_p_tr, Slive_p_ts, Sfake_p_ts, ...
      Mlist_live_p_tr, Mlist_fake_p_tr, Mlist_live_p_ts, Mlist_fake_p_ts);
      
@@ -306,7 +311,7 @@ scores_SVM_postcell{p} = score_posterior;
 scores_SVMcell{p} = num2cell(score);
 Ytsscell{p} = Yts;
 Ytrscell{p} = Ytr;
-testPeople = [testPeople; testPerson];
+testPeople = [testPeople testPerson];
 labelsSVMcell{p} = labelSVM;
 predictionAllSVM = [predictionAllSVM; predictionSVM];
 predictionAllSVMLive = [predictionAllSVMLive; predictionSVMLive];
@@ -322,13 +327,10 @@ end % end p, for each LOOV person
         predictionAverageSVMFake = sum(predictionAllSVMFake)/length(predictionAllSVMFake);
         disp([num2str(predictionAverageSVMFake) '% Average Fake SVM accuracy']);
 
-save([saveLiuFolder '_' train_cases '_' light_condition '_' attack '_' 'SVMresults_all_p.mat'], 'scores_SVM_postcell', 'scores_SVMcell', ...
+save([saveLiuFolder '_' motion_set_up '_' train_cases '_' light_condition '_' attack '_' 'SVMresults_all_p.mat'], 'scores_SVM_postcell', 'scores_SVMcell', ...
     'Ytsscell', 'Ytrscell', 'testPeople', 'labelsSVMcell', 'predictionAllSVM', ...
     'predictionAllSVMLive', 'predictionAllSVMFake', 'predictionAverageSVM', ...
     'predictionAverageSVMLive', 'predictionAverageSVMFake')
-
-
-% toc
 
         end % end t3
     end % end t2

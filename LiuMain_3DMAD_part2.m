@@ -87,7 +87,7 @@ end
     
     Sfake_p_tr = Sfake_p(:,Str_idx);
     
-% find training people indices     
+% find testing people indices     
 Sts_pStart = (testPerson-1)*N+1;
 Sts_pEnd = (testPerson)*N;
 Sts_idx = [];
@@ -135,12 +135,7 @@ end
 
 liveFolders = 1:2;
 fakeFolders = 3;
-% attack = 'photo';
-labelsSVM = [];
-predtests = [];
-Ytss = [];
-orderTrAll = [];
-orderTsAll = []; 
+
 
 testPersonLiv = testPerson; % change if Replay
 testPersonAt = testPerson;

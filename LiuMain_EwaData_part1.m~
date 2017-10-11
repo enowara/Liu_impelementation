@@ -1,88 +1,58 @@
 % Liu et al. 2016 ECCV implementation
 %% load  videos
 
-folderMain = '/media/ewa/SH/DatasetsAntiSpoof/ReplayAttackDirectories/';
-folderReal_Alll = {'train/real/', 'test/real/', 'devel/real/'};
-folderAttackf_All = {'train/attack/fixed/', 'test/attack/fixed/', 'devel/attack/fixed/'};  
-folderAttackh_All = {'train/attack/hand/', 'test/attack/hand/', 'devel/attack/hand/'};
+filename =''; %'01_01_01.avi';
+vid_phot = 'phot'; %'vid';
+fileFormat = '.png';% '';
 
-DlibFolder = {''};
 
-datte = '10-02';
-saveLiuFolder = ['LiuReplay/' datte '/'];
+mainFolderVids = '/media/ewa/SH/DatasetsAntiSpoof/EwaPPGdataCollection/NewerHandvsFixedNotxt/';
+mainFolderPnts = '/media/ewa/SH/DatasetsAntiSpoof/EwaPPGdataCollection/NewerHandvsFixed/';
+
+datte = '10_10';
+saveLiuFolder = ['/home/ewa/Dropbox (Rice Scalable Health)/DocumentsUbuntu/' ...
+        'Liveness_Detection_Security/Results/BPADCameraVitals2016/LiuEwaData/' datte '/'];
 mkdir(saveLiuFolder)
 
-for f = 1%:3
-    NameListAll = [];
-    S = [];
-    Mlist = []; % combine S and Mlist matrices for each train, test, devel folder
-% combine from train, test, devel and split by types of attacks 
-    for FF = 1:3
-        folderReal = folderReal_Alll{FF};
-        folderAttackf = folderAttackf_All{FF};
-        folderAttackh = folderAttackh_All{FF};
+vidList = dir(mainFolderVids);
 
-    %  for f = 1:3
-         S_init = [];
-         Mlist_init = [];
+datte = '10-11';
+saveLiuFolder = ['LiuEwaData/' datte '/'];
+mkdir(saveLiuFolder)
 
-        if f == 1
-            folderEnd = folderReal;
-        end
-        if f == 2
-            folderEnd = folderAttackf;
-
-        end
-        if f == 3
-            folderEnd = folderAttackh;
-        end
-        fileNameList = dir([[folderMain folderEnd] ['*' '.mov']]); %
-
-        clear imgCells
-        
-        for i =1:length(fileNameList)
-            imgCells{i} = fileNameList(i).name;  
-        end
+for vidNum = 3%:length(vidList)% [4:6, 8:length(vidList)]
     
-        [cs,index] = sort_nat(imgCells,'ascend');
-        img_names = cs;
-        
-        % save all video names to later choose tr and ts sets with specific
-        % set ups
-        if f == 1
-            NameListAll = [NameListAll; fileNameList];
-            
-        elseif f == 2 
-            NameListAll = [NameListAll; fileNameList];
-            
-        elseif f == 3
-            NameListAll = [NameListAll; fileNameList];
-            
-        end
-            
-       for  m = 8%1:length(fileNameList)
-%         try
-            vidName = img_names{m};       
-            % read in the videos
-            v = VideoReader([folderMain folderEnd vidName]);
-            videoLength = v.Duration;
-            videoRate = v.FrameRate;
-            numFrame = videoLength*videoRate;
-            width = v.Width;
-            height = v.Height; 
-            Fps = v.FrameRate;
+    vidName = vidList(vidNum).name; % EwaLiveCamFixed/cam1/';
+    fullPath2File = [mainFolderVids vidName '/cam1/'];
+    pointsFile = [mainFolderPnts vidName '.txt'];
 
-            frames = read(v);
 
-            vg = frames; %(:,:,2,:);
-%             vg = permute(vg,[1,2,4,3]);   
-        t=1; % first frame
-            firstFrame = vg(:,:,t);
-        load(['/media/ewa/Data/PreliminaryResultsToCleanUp/FromBPADCameraVitals2016/Data/IDAP1stFrameNew' subFolder '/' num2str(f) 'Dlib/dLib-' vidName '.png.mat'])
-
-            firstPoints = pointsResized;
+    addpath('/home/ewa/Dropbox (Rice Scalable Health)/DocumentsUbuntu/Liveness_Detection_Security/Code/temp_helper_functions/altmany-export_fig-5be2ca4/');
     
+    %% split videos into shorter time windows
     
+    % first check how long each video is
+    vid_length = length(dir(fullPath2File));
+    tim_win = 10*30;
+    counter = 0;
+    
+    for tt = 1%:tim_win:vid_length-tim_win
+        counter = counter+1;
+        vid_start = tt;
+        vid_finish = tt+tim_win - 1;%[]; % remove this many frames from the end of the video
+        vid_end = vid_length - tim_win - vid_start - 1;
+        %% read video 
+        addpath()
+        [~, vidSin_out, Fps] = read_video(filename, fullPath2File, vid_phot, fileFormat, vid_start, vid_end);
+
+        % %% load landmarks
+        img_names = 'frame_00000.png';
+
+        [pointsResizedAll] = dlib2FacialPoints(fullPath2File,img_names, pointsFile);
+    
+        firstPoints = pointsResizedAll;
+        firstFrame = vidSin_out(:,:,:,1);
+     
 %% split into small regions
         [facialRegions] = generateFacialROIs(firstPoints);   % each cell is each ROI
 
@@ -115,7 +85,7 @@ for f = 1%:3
 
         %% select facial ROIs
         pulseXY = [];
-        N = length(facialRegions);
+        N = size(facialRegions,2);
         for n = 1:N
             %ismember(round(facialRegions{n}), round(pointsList(:,:,:)));
         %     gridROI = pointsList(:,round(facialRegions{n}),:);
@@ -129,9 +99,9 @@ for f = 1%:3
             chB = 3;
             nn = 10;
             % CHROM PPG extraction
-            [PPGrawR] = getPPGperChannel(chR, vg, gridROI, nn);
-            [PPGrawG] = getPPGperChannel(chG, vg, gridROI, nn);
-            [PPGrawB] = getPPGperChannel(chB, vg, gridROI, nn);
+            [PPGrawR] = getPPGperChannel(chR, vidSin_out, gridROI, nn);
+            [PPGrawG] = getPPGperChannel(chG, vidSin_out, gridROI, nn);
+            [PPGrawB] = getPPGperChannel(chB, vidSin_out, gridROI, nn);
 
             % Chrom
             % raw PPG for a grid region 
@@ -147,15 +117,13 @@ for f = 1%:3
             S_init = [S_init pulseXY];   % for all people together
             Mlist_init = [Mlist_init; f m]; % keep track of all the videos and from which folder, to split for LOOV tr and ts
         end 
-%     catch 
-%         continue
-%     end
-   end % end m
-   
-    end % end FF
-    S = [S S_init];
+
+    disp([num2str(f) '-' num2str(counter)])
+   end % end counter
+    S = [S S_init]; % are the videos going to be the same length to put them together here
     Mlist = [Mlist; Mlist_init];
-save([saveLiuFolder 'Replay-LiuData-' num2str(f) '.mat'], 'S', 'Mlist', 'NameListAll')
+    
+save([saveLiuFolder 'Replay-LiuData-' num2str(f) '.mat'], 'S', 'Mlist')
  end % end f
  
    % iterate through videos, each time leaving out different ones for

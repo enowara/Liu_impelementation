@@ -115,7 +115,7 @@ for f = 1:3
 
         %% select facial ROIs
         pulseXY = [];
-        N = length(facialRegions);
+        N = size(facialRegions,2);
         for n = 1:N
             %ismember(round(facialRegions{n}), round(pointsList(:,:,:)));
         %     gridROI = pointsList(:,round(facialRegions{n}),:);
